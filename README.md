@@ -1,5 +1,4 @@
 # HIYO-Encoder
-# README for Question Generation and Answering System
 
 ## Overview
 
