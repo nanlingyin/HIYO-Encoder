@@ -38,7 +38,7 @@ def normalize_answer(s):
 
     return white_space_fix(remove_articles(remove_punctuation(lower(s))))
 
-
+# F1 Score 计算函数
 def f1_score(prediction, ground_truth):
     prediction_tokens = normalize_answer(prediction).split()
     ground_truth_tokens = normalize_answer(ground_truth).split()
@@ -126,10 +126,11 @@ def standardization(query):#主题提取
     return response.choices[0].message.content
 
 #query=input()
-dataset = load_dataset("squad_v2")
+dataset = load_dataset("squad_v2", "default")
 queries = []
 answers = []
 contexts = []
+seen_contexts = set()
 for idx, example in enumerate(dataset["train"]):  # 遍历训练集中的所有样本
     context = example.get("question", "").strip()  # 提取 'query' 作为上下文
     context3 = example.get("context", "").strip()
@@ -138,7 +139,9 @@ for idx, example in enumerate(dataset["train"]):  # 遍历训练集中的所有�
     if context:  # 确保不为空
         queries.append(context)
         answers.append(answer)
+    if context3 and context3 not in seen_contexts:  # 确保上下文不为空且不重复
         contexts.append(context3)
+        seen_contexts.add(context3)
 count = 0
 f1sc = []
 total = 0
@@ -186,14 +189,25 @@ for i in range(len(queries)):
     # 用 query_embedding 找到余弦相似度最高的文本
     retrieved_texts = [contexts[i] for i in indices[0]]
     retrieved_embeddings = [context_embeddings[i] for i in indices[0]]
+
+
     similarities = [util.pytorch_cos_sim(query_embedding, embedding).item() for embedding in retrieved_embeddings]
 
     # 找出相似度最高的文本
-    max_similarity_idx = np.argmax(similarities)
-    best_context = retrieved_texts[max_similarity_idx]
-    print("最相似的上下文: ", best_context, "\n")
+    top_3_contexts=""
+    sorted_indices = np.argsort(similarities)
+    top_3_indices = sorted_indices[-3:][::-1]
+    top_3_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
+    #max_similarity_idx = np.argmax(similarities)
+    print("最相似的上下文: ", top_3_contexts, "\n")
     print("最相似的answer: ", answer, "\n")
-    input_text = f"Context: {best_context}\nQuestion: {query}\nprompt:Your answer only needs to contain the answer to my question, and you don't need to include the reason or redundant information in the context that has nothing to do with the question. Try to be as concise and accurate as possible."
+    input_text = f'''
+    prompt:
+    The question you get is {query}
+    Here are three documents maybe can help you to answer question. You can choose one of them to answer. 
+    Documents: {top_3_contexts}
+    Remember Your answer only needs to contain the answer to my question, and you don't need to include the reason or redundant information in the context that has nothing to do with the question. Try to be as concise and accurate as possible.
+    '''
     re1 = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
