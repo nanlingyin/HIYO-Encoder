@@ -38,7 +38,7 @@ def normalize_answer(s):
 
     return white_space_fix(remove_articles(remove_punctuation(lower(s))))
 
-# F1 Score 计算函数
+
 def f1_score(prediction, ground_truth):
     prediction_tokens = normalize_answer(prediction).split()
     ground_truth_tokens = normalize_answer(ground_truth).split()
