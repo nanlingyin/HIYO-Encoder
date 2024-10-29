@@ -196,7 +196,7 @@ for i in range(len(queries)):
     # 找出相似度最高的文本
     top_3_contexts=""
     sorted_indices = np.argsort(similarities)
-    top_3_indices = sorted_indices[-3:][::-1]
+    top_3_indices = sorted_indices[-2:][::-1]
     top_3_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
     #max_similarity_idx = np.argmax(similarities)
     print("最相似的上下文: ", top_3_contexts, "\n")
@@ -204,9 +204,9 @@ for i in range(len(queries)):
     input_text = f'''
     prompt:
     The question you get is {query}
-    Here are three documents maybe can help you to answer question. You can choose one of them to answer. 
+    Here are 2 documents maybe can help you to answer this question. You can choose one of them to answer. 
     Documents: {top_3_contexts}
-    Remember Your answer only needs to contain the answer to my question, and you don't need to include the reason or redundant information in the context that has nothing to do with the question. Try to be as concise and accurate as possible.
+    Your answer only needs to contain the answer to my question, and you don't need to include the reason or redundant information in the context that has nothing to do with the question. Try to be as concise and accurate as possible.
     '''
     re1 = client.chat.completions.create(
         model="gpt-4o-mini",
