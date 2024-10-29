@@ -19,7 +19,7 @@ Ensure you have the following dependencies installed:
 You can install the necessary Python packages using pip:
 
 ```bash
-pip install openai sentence-transformers numpy faiss-cpu datasets torch
+pip install openai sentence-transformers numpy faiss-cpu datasets=3.0.2 torch
 ```
 
 ## Components
