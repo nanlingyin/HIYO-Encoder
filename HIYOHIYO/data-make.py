@@ -12,7 +12,7 @@ client = OpenAI(
 )
 
 # 加载 SQuAD v2 数据集
-dataset = load_dataset("squad_v2", "default")
+dataset = load_dataset("squad_v2")
 
 
 # 函数：使用 GPT-4 生成问题
