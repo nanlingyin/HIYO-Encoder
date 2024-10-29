@@ -1,4 +1,3 @@
-
 import re
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
@@ -133,12 +132,13 @@ answers = []
 contexts = []
 for idx, example in enumerate(dataset["train"]):  # 遍历训练集中的所有样本
     context = example.get("question", "").strip()  # 提取 'query' 作为上下文
+    context3 = example.get("context", "").strip()
     answerx = example.get("answers", "")
     answer = answerx.get("text", [])
     if context:  # 确保不为空
         queries.append(context)
         answers.append(answer)
-        contexts.append(context)
+        contexts.append(context3)
 count = 0
 f1sc = []
 total = 0
