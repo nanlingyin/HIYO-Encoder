@@ -126,7 +126,7 @@ def standardization(query):#主题提取
     return response.choices[0].message.content
 
 #query=input()
-dataset = load_dataset("squad_v2", "default")
+dataset = load_dataset("squad_v2")
 queries = []
 answers = []
 contexts = []
