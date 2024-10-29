@@ -112,4 +112,3 @@ Average F1 Score: 0.95
 - The script currently processes the entire SQuAD v2 training dataset. You may want to limit the number of examples for quicker testing.
 - The F1 score is used to evaluate the accuracy of the generated answers.
 
-This README provides a comprehensive overview of the project's setup, components, and usage. Adjust the script and dependencies as needed for your specific requirements.
