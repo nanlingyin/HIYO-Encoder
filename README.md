@@ -4,7 +4,7 @@
 
 This project aims to create a system that generates questions based on a given context, extends the context with relevant questions, and retrieves the most relevant context to answer a query. It uses a combination of natural language processing (NLP) models and similarity search techniques to achieve this.
 
-## Dependencies
+## Requirements
 
 Ensure you have the following dependencies installed:
 
