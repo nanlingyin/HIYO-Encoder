@@ -197,7 +197,7 @@ for i in range(len(queries)):
     top_2_contexts=""
     sorted_indices = np.argsort(similarities)
     top_2_indices = sorted_indices[-2:][::-1]
-    top_2_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
+    top_2_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_2_indices])
     #max_similarity_idx = np.argmax(similarities)
     print("最相似的上下文: ", top_2_contexts, "\n")
     print("最相似的answer: ", answer, "\n")
