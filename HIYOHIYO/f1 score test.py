@@ -51,4 +51,4 @@ ground_truth = "In the late 1990s."
 f1 = f1_score(prediction, ground_truth)
 print(f"F1 Score: {f1}")
 
-# 123
+# 这是f1 score计算的示例代码
