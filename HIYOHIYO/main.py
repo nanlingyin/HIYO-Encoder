@@ -194,19 +194,22 @@ for i in range(len(queries)):
     similarities = [util.pytorch_cos_sim(query_embedding, embedding).item() for embedding in retrieved_embeddings]
 
     # 找出相似度最高的文本
-    top_3_contexts=""
+    top_2_contexts=""
     sorted_indices = np.argsort(similarities)
-    top_3_indices = sorted_indices[-2:][::-1]
-    top_3_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
+    top_2_indices = sorted_indices[-2:][::-1]
+    top_2_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
     #max_similarity_idx = np.argmax(similarities)
-    print("最相似的上下文: ", top_3_contexts, "\n")
+    print("最相似的上下文: ", top_2_contexts, "\n")
     print("最相似的answer: ", answer, "\n")
     input_text = f'''
-    prompt:
-    The question you get is {query}
-    Here are 2 documents maybe can help you to answer this question. You can choose one of them to answer. 
-    Documents: {top_3_contexts}
-    Your answer only needs to contain the answer to my question, and you don't need to include the reason or redundant information in the context that has nothing to do with the question. Try to be as concise and accurate as possible.
+    The question you get is
+    {query}
+    Here are 2 documents maybe can help you to answer this question. You can choose one of them to answer.
+    Documents:
+    {top_2_contexts}
+    The most important is:
+    Your answer does not need to contain a complete grammatical structure, it just needs to answer my question accurately. The answer should be one word or a phrase.
+    If the text you get not contain the answer to the question you must output "[]"
     '''
     re1 = client.chat.completions.create(
         model="gpt-4o-mini",
