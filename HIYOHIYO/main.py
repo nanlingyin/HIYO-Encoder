@@ -194,19 +194,19 @@ for i in range(len(queries)):
     similarities = [util.pytorch_cos_sim(query_embedding, embedding).item() for embedding in retrieved_embeddings]
 
     # 找出相似度最高的文本
-    top_2_contexts=""
+    top_3_contexts=""
     sorted_indices = np.argsort(similarities)
-    top_2_indices = sorted_indices[-2:][::-1]
-    top_2_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_2_indices])
+    top_3_indices = sorted_indices[-3:][::-1]
+    top_3_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
     #max_similarity_idx = np.argmax(similarities)
-    print("最相似的上下文: ", top_2_contexts, "\n")
+    print("最相似的上下文: ", top_3_contexts, "\n")
     print("最相似的answer: ", answer, "\n")
     input_text = f'''
     The question you get is
     {query}
     Here are 2 documents maybe can help you to answer this question. You can choose one of them to answer.
     Documents:
-    {top_2_contexts}
+    {top_3_contexts}
     The most important is:
     Your answer does not need to contain a complete grammatical structure, it just needs to answer my question accurately. The answer should be one word or a phrase.
     If the text you get not contain the answer to the question you must output "[]"
