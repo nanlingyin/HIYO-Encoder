@@ -196,7 +196,7 @@ for i in range(len(queries)):
     # 找出相似度最高的文本
     top_3_contexts=""
     sorted_indices = np.argsort(similarities)
-    top_3_indices = sorted_indices[-5:][::-1]
+    top_3_indices = sorted_indices[-3:][::-1]
     top_3_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
     #max_similarity_idx = np.argmax(similarities)
     print("最相似的上下文: ", top_3_contexts, "\n")
@@ -208,15 +208,15 @@ for i in range(len(queries)):
     Documents:
     {top_3_contexts}
     The most important is:
-    Your answer does not need to contain a complete grammatical structure, it just needs to answer my question accurately. The answer should be one word or a phrase.
-    If the text you can't get answer to the question, you should first output your chain-of-thought, and then output "[]"
+    Your answer does not need to contain a complete grammatical structure, it just needs to answer my question accurately. The answer must be one word or a phrase.
+    If you can't get answer to the question from the documents,  only in this time you can output your chain-of-thought, and then output "[]"
     '''
     re1 = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": input_text,},
         ],
-    temperature = 0.5
+    temperature = 0.9
     )
     ans = re1.choices[0].message.content
     print(ans,"\n")
