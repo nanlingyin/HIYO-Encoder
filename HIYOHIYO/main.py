@@ -5,6 +5,7 @@ import numpy as np
 import faiss
 from datasets import load_dataset
 from sentence_transformers import util
+import random
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
 client = OpenAI(
@@ -153,7 +154,9 @@ dimension = context_embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
 index.add(np.array(context_embeddings))
 
-for i in range(len(queries)):
+indices = list(range(len(queries)))
+random.shuffle(indices)
+for i in indices:
     query = queries[i]
     answer = answers[i][0]
     print(query)
