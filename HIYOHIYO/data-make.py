@@ -14,14 +14,15 @@ client = OpenAI(
 # 加载 SQuAD v2 数据集
 dataset = load_dataset("squad_v2")
 
-# 函数：使用 GPT-4 生成问题
-def context_extension(context):
+# 函数：使用 GPT-4 根据主题生成问题 
+def context_extension(context,topic):
     prompt = f"""
     Context information is below.
     ---------------------
-    {context}
+    topic : {topic}
+    context : {context}
     ---------------------
-    You are a Professor who is proficient in asking questions. Your task is to set up 6 questions for students to answer based on the provided context.
+    You are a Professor who is proficient in asking questions. Your task is to set up 6 questions of my topic for students to answer based on the provided context .
     1. The questions should be diverse in nature and cover various aspects of the document. Ensure that they include the words "who," "where," "what," "when," "why," and "how."
     2. Restrict the questions to the information provided, and avoid ambiguous references.
     Output Format:
@@ -42,29 +43,58 @@ def context_extension(context):
     questions = [q.strip() for q in questions if q.strip()]
     return questions
 
+def standardization(query):#主题提取
+    prompt = f"""
+    The context you get is below
+    -------------------------------------------------------
+    {query}
+    -------------------------------------------------------
+    You are a Professor of Semantic recognition. Your task is to extract the topic of the context and what you need to do is below.
+    1.You need to extract a topic sentence from the context, remove redundant modifiers and try to retain key elements in the context.
+    2.The topic sentence must be a declarative sentence and summarize the context.
+    3.The topic sentence should be short without any redundant content.
+    4.Avoid the topic sentence being irrelevant to the context or as same as the context.
+    the example is below.
+    Context: Please talk about the advantages of AI medicine.
+    Your output: The advantages of AI medicine.
+
+    Output Format:
+    [
+    "topic sentence"
+    ]
+    """
+    response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {"role": "system", "content": prompt},
+    ]
+)
+    return response.choices[0].message.content
 # 函数：处理每个样本，生成新问题并扩展数据集
 def process_sample(sample):
     context = sample['context']
-    generated_questions = context_extension(context)
+    topic = standardization(sample['question'])
+    generated_questions = context_extension(context,topic)
 
     new_samples = []
-
-    # 添加原始问题
+    '''
+    # 添加原始问题,该部分仅为测试作用
     new_samples.append({
         'context': context,
         'question': sample['question'],
         'answers': sample['answers'],
         'id': sample['id']
     })
-
+    '''
     # 添加生成的问题
-    for i, q in enumerate(generated_questions):
-        new_samples.append({
-            'context': context,
-            'question': q,
-            'answers': {'text': [], 'answer_start': []},
-            'id': f"{sample['id']}_gen_{i}"
-        })
+    new_samples.append({
+        'context': context,
+        'question': sample['question'],
+        'textqueries': enumerate(generated_questions),#将queries作为依据文本生成的问题组
+        'questionqueries': "",#暂时不添加根据问题生成的问题组
+        'answers': sample['answers'],
+        'id': sample['id']
+    })
 
     return new_samples
 
@@ -79,7 +109,7 @@ for idx, sample in enumerate(tqdm(dataset['train'])):
 new_dataset = Dataset.from_pandas(pd.DataFrame(new_data))
 
 # 指定保存路径
-save_path = 'C:/Users/admin/Desktop/HIYOHIYO/new_dataset.parquet'
+save_path = 'C:/Users/admin/Desktop/new_dataset.parquet'
 
 # 保存为 Parquet 文件
 new_dataset.to_parquet(save_path)

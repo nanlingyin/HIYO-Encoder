@@ -215,7 +215,7 @@ for i in range(len(queries)):
     {top_3_contexts}
     The most important is:
     Your answer does not need to contain a complete grammatical structure, it just needs to answer my question accurately. The answer must be one word or a phrase.
-    REMEMBER PLEASE!If you can't get answer to the question from the documents,  only in this time you can output your chain-of-thought, and then output "none"
+    REMEMBER PLEASE!If you can't get answer to the question from the documents,  only in this time you output "none"
     '''
     re1 = client.chat.completions.create(
         model="gpt-4o-mini",
