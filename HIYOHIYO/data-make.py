@@ -90,7 +90,7 @@ def process_sample(sample):
     new_samples.append({
         'context': context,
         'question': sample['question'],
-        'textqueries': enumerate(generated_questions),#将queries作为依据文本生成的问题组
+        'textqueries': generated_questions,#将queries作为依据文本生成的问题组
         'questionqueries': "",#暂时不添加根据问题生成的问题组
         'answers': sample['answers'],
         'id': sample['id']
