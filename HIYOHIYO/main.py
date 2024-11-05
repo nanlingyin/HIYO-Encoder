@@ -158,8 +158,8 @@ index.add(np.array(context_embeddings))
 for i in range(len(queries)):
     j=random.randint(1,len(answers))
     query = queries[j]
-    if answers[i]:
-        answer = answers[i][0]
+    if answers[j]:
+        answer = answers[j][0]
     else:
         answer = "none"
     print(query)
