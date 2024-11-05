@@ -4,16 +4,15 @@ import pandas as pd
 from tqdm import tqdm
 from openai import OpenAI
 
-# 设置 OpenAI API 密钥
+# 设置 OpenAI API 客户端
 client = OpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY)
-    api_key="sk-kwW1BsPpbbLfLDFBNmByeYYjIBqnACvv6TyuL8IQN7FRnUID",
+    # 默认为 os.environ.get("OPENAI_API_KEY")
+    api_key="sk-kwW1BsPpbbLfLDFBNmByeYYjIBqnACvv6TyuL8IQN7FRnUID",  # 请将此处替换为您的实际 API 密钥
     base_url="https://api.ephone.chat/v1"
 )
 
 # 加载 SQuAD v2 数据集
 dataset = load_dataset("squad_v2")
-
 
 # 函数：使用 GPT-4 生成问题
 def context_extension(context):
@@ -43,7 +42,6 @@ def context_extension(context):
     questions = [q.strip() for q in questions if q.strip()]
     return questions
 
-
 # 函数：处理每个样本，生成新问题并扩展数据集
 def process_sample(sample):
     context = sample['context']
@@ -70,17 +68,18 @@ def process_sample(sample):
 
     return new_samples
 
-
-# 处理整个数据集
+# 处理前100个样本
 new_data = []
-for sample in tqdm(dataset['train']):
+for idx, sample in enumerate(tqdm(dataset['train'])):
+    if idx >= 100:
+        break
     new_data.extend(process_sample(sample))
 
 # 创建新的 Dataset 对象
 new_dataset = Dataset.from_pandas(pd.DataFrame(new_data))
 
 # 指定保存路径
-save_path = 'C:/Users/admin/Desktop/HIYOHIYO'
+save_path = 'C:/Users/admin/Desktop/HIYOHIYO/new_dataset.parquet'
 
 # 保存为 Parquet 文件
 new_dataset.to_parquet(save_path)
