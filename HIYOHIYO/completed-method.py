@@ -13,16 +13,13 @@ client = OpenAI(
     api_key="sk-kwW1BsPpbbLfLDFBNmByeYYjIBqnACvv6TyuL8IQN7FRnUID",
     base_url="https://api.ephone.chat/v1"
 )
-def normalize_answer(s):
-    """Lower text and remove punctuation, articles and extra whitespace."""
-    def remove_articles(text):
-        return re.sub(r'\b(a|an|the)\b', ' ', text)
 
-    def white_space_fix(text):import re
+
 import string
 from collections import Counter
 
 # 数据预处理函数
+
 def normalize_answer(s):
     """Lower text and remove punctuation, articles and extra whitespace."""
     def remove_articles(text):
@@ -127,7 +124,7 @@ def standardization(query):#主题提取
     return response.choices[0].message.content
 
 #query=input()
-dataset = load_dataset("snew_dataset.parquet")
+dataset = load_dataset("parquet",data_files="new_dataset.parquet")
 queries = []
 answers = []
 contexts = []
@@ -143,18 +140,18 @@ for idx, example in enumerate(dataset["train"]):  # 遍历训练集中的所有�
         queries.append(context)
         answers.append(answer)
         quesgroups.append(quesgroup)
-    if context3 and context3 not in seen_contexts:  # 确保上下文不为空且不重复
+    if context3:# and context3 not in seen_contexts:  # 确保上下文不为空且不重复
         contexts.append(context3)
         seen_contexts.add(context3)
 count = 0
 datagroup = []
 total = 0
 for i in range(len(quesgroups)):
-    datagroup_embeddings = model.encode(quesgroups[1])
-    datagroup_embeddings.shape
+    datagroup_embeddings = model.encode(quesgroups[i])
     pooled_datagroup_embedding = np.mean(datagroup_embeddings, axis=0)
     datagroup.append(pooled_datagroup_embedding)
 context_embeddings = model.encode(contexts)
+datagroup = np.array(datagroup)
 
 # 构建 FAISS 索引
 dimension = datagroup.shape[1]
@@ -199,7 +196,7 @@ for i in range(len(queries)):
 
 
     # 用 pooled_group_embedding 进行初步检索，找出前十个最相似的问题组向量
-    k = 10  # 检索前10个
+    k = 20  # 检索前10个
     distances, indices = index.search(np.array([pooled_group_embedding]), k)
     retrieved_texts = [contexts[i] for i in indices[0]]
     retrieved_embeddings = [context_embeddings[i] for i in indices[0]]
@@ -208,12 +205,18 @@ for i in range(len(queries)):
     similarities = [util.pytorch_cos_sim(query_embedding, embedding).item() for embedding in retrieved_embeddings]
 
     # 找出相似度最高的文本
-    top_3_contexts=""
-    sorted_indices = np.argsort(similarities)
-    top_3_indices = sorted_indices[-3:][::-1]
-    top_3_contexts += "\nDocument:".join([str(retrieved_texts[i]) for i in top_3_indices])
-    #max_similarity_idx = np.argmax(similarities)
-    print("最相似的上下文: ", top_3_contexts, "\n")
+    top_3_contexts = []
+    seen_contexts = set()
+
+    for idx in indices[0]:
+        context = contexts[idx]
+        if context not in seen_contexts:
+            top_3_contexts.append(context)
+            seen_contexts.add(context)
+        if len(top_3_contexts) == 3:
+            break
+    top_3_contexts_str = "\nDocument: ".join(top_3_contexts)
+    print("最相似的上下文:\nDocument: ", top_3_contexts_str, "\n")
     print("最相似的answer: ", answer, "\n")
     input_text = f'''
     The question you get is
