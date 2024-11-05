@@ -154,11 +154,14 @@ dimension = context_embeddings.shape[1]
 index = faiss.IndexFlatL2(dimension)
 index.add(np.array(context_embeddings))
 
-indices = list(range(len(queries)))
-random.shuffle(indices)
-for i in indices:
-    query = queries[i]
-    answer = answers[i][0]
+
+for i in range(len(queries)):
+    j=random.randint(1,len(answers))
+    query = queries[j]
+    if answers[i]:
+        answer = answers[i][0]
+    else:
+        answer = "none"
     print(query)
     topic = standardization(query)
     print(topic)  # 输出主题
@@ -212,7 +215,7 @@ for i in indices:
     {top_3_contexts}
     The most important is:
     Your answer does not need to contain a complete grammatical structure, it just needs to answer my question accurately. The answer must be one word or a phrase.
-    If you can't get answer to the question from the documents,  only in this time you can output your chain-of-thought, and then output "[]"
+    REMEMBER PLEASE!If you can't get answer to the question from the documents,  only in this time you can output your chain-of-thought, and then output "none"
     '''
     re1 = client.chat.completions.create(
         model="gpt-4o-mini",
