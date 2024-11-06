@@ -162,7 +162,7 @@ index.add(np.array(datagroup))
 index2.add(np.array(context_embeddings))
 
 for i in range(len(queries)):
-    j=random.randint(1,len(answers))
+    j=random.randint(1,len(answers))-5
     query = queries[j]
     if answers[j]:
         answer = answers[j][0]
