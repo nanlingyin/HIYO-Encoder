@@ -48,6 +48,8 @@ def f1_score(prediction, ground_truth):
     recall = num_same / len(ground_truth_tokens)
     f1 = 2 * precision * recall / (precision + recall)
     return f1
+def exact_match_score(prediction, ground_truth):
+    return int(normalize_answer(prediction) == normalize_answer(ground_truth))
 def context_extension(context):
     prompt = f"""
     Context information is below .
@@ -146,6 +148,7 @@ for idx, example in enumerate(dataset["train"]):  # 遍历训练集中的所有�
 count = 0
 datagroup = []
 total = 0
+total2 = 0
 for i in range(len(quesgroups)):
     datagroup_embeddings = model.encode(quesgroups[i])
     pooled_datagroup_embedding = np.mean(datagroup_embeddings, axis=0)
@@ -240,7 +243,11 @@ for i in range(len(queries)):
     predictions = ans
     ground_truths = answer
     results = f1_score(predictions, ground_truths)
+    results2 = exact_match_score(predictions, ground_truths)
     total += results
+    total2 += results2
     count += 1
     print(f"F1 Score: {results}\n")
     print(f"average F1 Score: {total/count}\n")
+    print(f"EM Score: {results2}\n")
+    print(f"average EM Score: {total2 / count}\n")
