@@ -1,114 +1,203 @@
 # HIYO-Encoder
+This is the English edition of readme
+## Table of Contents
+- Introduction
+- Architecture
+- Installation
+- Configuration
+- Usage
+  - Data Preprocessing
+  - Retrieval and Evaluation
+- Project Structure
+- Dependencies
+- Example
+- Evaluation Metrics
+- Contact
 
-## Overview
+## Introduction
 
-This project aims to create a system that generates questions based on a given context, extends the context with relevant questions, and retrieves the most relevant context to answer a query. It uses a combination of natural language processing (NLP) models and similarity search techniques to achieve this.
+The **HIYO-Encoder** is a dual-retrieval model designed to increase retrieval accuracy and lower hallucinations. HIYO-Encoder increases retrieval scope by extending searches using a 5W1H framework (who, what, where, when, why, and how), thereby better aligning retrieved information with user intent. In high-precision, low-hallucinity QA settings, experimental data show that HIYO-Encoder outperforms conventional RAG models in F1 and Exact Match measures. HIYO-Encoder is presented in this work as a strong solution for RAG system optimization in challenging environments.
 
-## Requirements
 
-Ensure you have the following dependencies installed:
+## Architecture
 
-- `re`
-- `openai`
-- `sentence-transformers`
-- `numpy`
-- `faiss`
-- `datasets`
-- `torch`
+The HIYO-Encoder project is structured into several key components:
 
-You can install the necessary Python packages using pip:
+1. **Data Preprocessing (`preprocessing.py`):** Processes the raw dataset to generate augmented data with generating 5W1H sub-queries.
+2. **Dual Retrieval  (`retrival.py`):** Handles embedding generation and FAISS indexing for efficient retrieval of relevant contexts.
+3. **Evaluation (`evaluate.py`):** Computes F1 and Exact Match scores to evaluate the accuracy of generated answers.
+4. **Main Execution (`main.py`):** Integrates retrieval and evaluation processes to generate and assess answers.
 
-```bash
-pip install openai sentence-transformers numpy faiss-cpu datasets=3.0.2 torch
-```
+## Installation
 
-## Components
+### Prerequisites
 
-### 1. **Preprocessing Functions**
+- Python 3.7 or higher
+- Git
 
-- **normalize_answer(s):** Normalizes text by converting it to lowercase, removing punctuation, articles, and extra whitespace.
-- **f1_score(prediction, ground_truth):** Computes the F1 score between the predicted answer and the ground truth.
+### Steps
 
-### 2. **OpenAI Client Setup**
+1. **Clone the Repository**
 
-The OpenAI client is set up with the provided API key and base URL:
+   ```bash
+   git clone https://github.com/your-repo/HIYO-Encoder.git
+   cd HIYO-Encoder
+   ```
 
-```python
-client = OpenAI(
-    api_key="your_openai_api_key",
-    base_url="your_url"
-)
-```
+2. **Create and Activate a Virtual Environment**
 
-### 3. **Context Extension and Question Generation**
+   ```bash
+   python -m venv venv
 
-- **context_extension(context):** Generates a set of six questions based on the given context using the OpenAI API.
-- **extension(topic):** Extends a given topic by generating six questions using the OpenAI API.
-- **standardization(query):** Extracts a topic sentence from the given query using the OpenAI API.
+   # Windows
+   venv\Scripts\activate
 
-### 4. **Dataset Loading**
+   # macOS/Linux
+   source venv/bin/activate
+   ```
 
-The SQuAD v2 dataset is loaded and processed to extract queries, answers, and contexts:
+3. **Install Dependencies**
 
-```python
-dataset = load_dataset("squad_v2", "default")
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### 5. **Embedding and Indexing**
+## Configuration
 
-- **SentenceTransformer:** The `all-MiniLM-L6-v2` model is used to encode the contexts and queries into embeddings.
-- **FAISS:** A FAISS index is created to store and search for the context embeddings.
+1. **OpenAI API Key**
 
-### 6. **Retrieval and Answering**
+   Replace the placeholder API key in `preprocessing.py` and `retrival.py` with your actual OpenAI API key.
 
-For each query:
-- The topic is extracted.
-- Questions are generated based on the topic.
-- The generated questions are encoded, and their embeddings are pooled.
-- The pooled embedding is used to retrieve the most relevant contexts from the FAISS index.
-- The most similar context is used to answer the query using the OpenAI API.
+   ```python
+   # Example in retrival.py
+   self.client = OpenAI(
+       api_key="your_actual_api_key",
+       base_url="https://api.ephone.chat/v1"
+   )
+   ```
 
-### 7. **Evaluation**
+2. **Dataset Path**
 
-The system evaluates the generated answers by computing the F1 score against the ground truth answers.
+   Ensure the `dataset_path` parameter points to your dataset file. Modify it in `main.py` and other relevant scripts as needed.
+
+   ```python
+   retriever = Retriever(
+       api_key="your_api_key",
+       base_url="https://api.ephone.chat/v1",
+       model_name='sentence-transformers/all-MiniLM-L6-v2',
+       dataset_path="path/to/your_dataset.parquet"
+   )
+   ```
 
 ## Usage
 
-1. **Set Up OpenAI API Key:**
-   Replace `"your_openai_api_key"` with your actual OpenAI API key in the `OpenAI` client setup.
+### Data Preprocessing
 
-2. **Run the Script:**
-   Ensure all dependencies are installed and run the script. It will process the dataset, generate questions, retrieve relevant contexts, and compute F1 scores for the answers.
+Before performing retrieval and evaluation, preprocess your dataset to generate augmented data.
 
 ```bash
-python your_script_name.py
+python preprocessing.py
 ```
 
-3. **Output:**
-   The script will print:
-   - The original query.
-   - The extracted topic.
-   - The generated questions.
-   - The most similar context.
-   - The generated answer.
-   - The F1 score for each query.
-   - The average F1 score.
 
-## Example Output
+### Retrieval and Evaluation
+
+Execute the main script to perform context retrieval, answer generation, and evaluation.
+
+```bash
+python main.py
+```
+
+
+## Project Structure
+
+```
+HIYO-Encoder/HIYOHIYO/HIYOEncoder-beta/
+├── main.py
+├── retrival.py
+├── evaluate.py
+└── preprocessing.py
+HIYO-Encoder/HIYOHIYO/
+└── requirements.txt
+HIYO-Encoder/
+└── README.md
+```
+
+- **main.py:** Integrates retrieval and evaluation processes.
+- **retrival.py:** Contains the `Retriever` class for dual retrieval.
+- **evaluate.py:** Contains the `Evaluator` class for performance evaluation.
+- **preprocessing.py:** Handles data augmentation and preprocessing (5W1H-generation).
+- **requirements.txt:** Lists all Python dependencies.
+- **README.md:** Project documentation.
+
+## Dependencies
+
+The HIYO-Encoder project relies on the following Python libraries:
+
+- `openai`
+- `sentence-transformers`
+- `faiss-cpu`
+- `datasets`
+- `pandas`
+- `tqdm`
+
+Ensure all dependencies are installed via `requirements.txt`.
 
 ```plaintext
-Query: What is the capital of France?
-Topic: The capital of France.
-Generated Questions: ["What is the capital of France?", "Where is the capital of France located?", ...]
-Most Similar Context: Paris is the capital of France.
-Generated Answer: Paris
-F1 Score: 1.0
-Average F1 Score: 0.95
+openai
+sentence-transformers
+faiss-cpu
+datasets
+pandas
+tqdm
 ```
 
-## Notes
+## Example
 
-- Ensure you have a valid OpenAI API key.
-- The script currently processes the entire SQuAD v2 training dataset. You may want to limit the number of examples for quicker testing.
-- The F1 score is used to evaluate the accuracy of the generated answers.
+### Sample Output
 
+```
+Query: Explain the advantages of AI in medicine.
+Prediction: AI in medicine offers improved diagnostic accuracy, optimized treatment plans, and enhanced patient care.
+Ground Truth: The advantages of AI medicine.
+F1 Score: 0.8
+Exact Match Score: 0
+--------------------------------------------------
+Average F1 Score: 0.75
+Average Exact Match Score: 0.2
+```
+
+### Code Snippet
+
+```python
+# main.py snippet
+print(f"Average F1 Score: {total_f1 / count}")
+print(f"Average Exact Match Score: {total_em / count}")
+```
+
+## Evaluation Metrics
+
+### F1 Score
+
+The F1 Score is the harmonic mean of precision and recall, providing a measure of a test's accuracy. It ranges from 0 to 1, where 1 signifies perfect precision and recall.
+
+```python
+f1 = evaluator.f1_score(prediction, ground_truth)
+```
+
+### Exact Match (EM) Score
+
+The Exact Match score measures the percentage of predictions that match any one of the ground truth answers exactly.
+
+```python
+em = evaluator.exact_match_score(prediction, ground_truth)
+```
+
+## Contact
+
+For any inquiries or issues, please contact:
+
+- **Email:** 20241008398@stu.shzu.edu.cn
+- **GitHub:** [nanlingyin](https://github.com/nanlingyin)
+
+---
