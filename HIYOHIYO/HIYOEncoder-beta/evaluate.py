@@ -1,3 +1,14 @@
+from collections import Counter
+import string
+import re
+from openai import OpenAI
+from sentence_transformers import SentenceTransformer
+import numpy as np
+import faiss
+from datasets import load_dataset
+from sentence_transformers import util
+import random
+
 class Evaluator:
     @staticmethod
     def normalize_answer(s):
@@ -18,8 +29,8 @@ class Evaluator:
 
     @staticmethod
     def f1_score(prediction, ground_truth):
-        prediction_tokens = Evaluater.normalize_answer(prediction).split()
-        ground_truth_tokens = Evaluater.normalize_answer(ground_truth).split()
+        prediction_tokens = Evaluator.normalize_answer(prediction).split()
+        ground_truth_tokens = Evaluator.normalize_answer(ground_truth).split()
         common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
         num_same = sum(common.values())
         if num_same == 0:
@@ -30,7 +41,7 @@ class Evaluator:
 
     @staticmethod
     def exact_match_score(prediction, ground_truth):
-        return int(Evaluater.normalize_answer(prediction) == Evaluater.normalize_answer(ground_truth))
+        return int(Evaluator.normalize_answer(prediction) == Evaluator.normalize_answer(ground_truth))
 '''
 使用方法：
 from HIYO-Evaluate import Evaluater

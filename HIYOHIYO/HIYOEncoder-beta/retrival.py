@@ -2,11 +2,12 @@ import re
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer, util
 import numpy as np
-import faiss
 from datasets import load_dataset
 import random
 import string
 from collections import Counter
+import torch
+import logging
 
 class Retriever:
     def __init__(self, api_key, base_url, model_name='sentence-transformers/all-MiniLM-L6-v2', dataset_path="new_dataset.parquet"):
@@ -15,44 +16,46 @@ class Retriever:
             base_url=base_url
         )
         self.model = SentenceTransformer(model_name)
-        self.dataset = load_dataset("parquet", data_files=dataset_path) #通过改变这里改变检索的数据集
+        self.dataset = load_dataset("parquet", data_files=dataset_path)
         self.queries, self.answers, self.contexts, self.quesgroups = self._process_dataset()
         self.datagroup, self.context_embeddings = self._encode_embeddings()
-        self.index = self._build_faiss_index()
-    
-    def _process_dataset(self):#对数据集进行预处理
+
+    def _process_dataset(self):
         queries, answers, contexts, quesgroups = [], [], [], []
-        seen_contexts = set()
-        for example in self.dataset["train"]:
-            context = example.get("question", "").strip()
-            context3 = example.get("context", "").strip()
-            answerx = example.get("answers", "")
-            answer = answerx.get("text", [])
+        for i, example in enumerate(self.dataset["train"]):
+            query = example.get("question", "").strip()
+            context = example.get("context", "").strip()
+            answerx = example.get("answers", {})
+            answers_list = answerx.get("text", [])
             quesgroup = example.get("textqueries", "")
-            if context:
-                queries.append(context)
-                answers.append(answer)
+            
+            if query:
+                queries.append(query)
+                answers.append(answers_list)
                 quesgroups.append(quesgroup)
-            if context3 and context3 not in seen_contexts:
-                contexts.append(context3)
-                seen_contexts.add(context3)
+            
+            
+            # 始终添加 context，避免长度不一致
+            if context:
+                contexts.append(context)
+        
         return queries, answers, contexts, quesgroups
-    
+
     def _encode_embeddings(self):
         datagroup = []
         for group in self.quesgroups:
-            embeddings = self.model.encode(group)
-            pooled_embedding = np.mean(embeddings, axis=0)
+            if group:
+                embeddings = self.model.encode(group)
+                pooled_embedding = np.mean(embeddings, axis=0)
+            else:
+            # 如果没有问题组，使用零向量
+                pooled_embedding = np.zeros(self.model.get_sentence_embedding_dimension())
             datagroup.append(pooled_embedding)
+    
+    # 确保编码所有 contexts，并转换为 float32
         context_embeddings = self.model.encode(self.contexts)
-        return np.array(datagroup), np.array(context_embeddings)
-    
-    def _build_faiss_index(self):
-        dimension = self.datagroup.shape[1]
-        index = faiss.IndexFlatL2(dimension)
-        index.add(self.datagroup)
-        return index
-    
+        return np.array(datagroup, dtype=np.float32), np.array(context_embeddings, dtype=np.float32)
+
     def standardization(self, query):
         prompt = f"""
         The context you get is below
@@ -80,7 +83,7 @@ class Retriever:
             ]
         )
         return response.choices[0].message.content
-    
+
     def extension(self, topic):
         prompt = f"""
         Context information is below.
@@ -104,36 +107,55 @@ class Retriever:
             ]
         )
         return response.choices[0].message.content
-    
+
     def get_top_contexts(self, query):
+        query_embedding = self.model.encode(query)
         # 提取主题
         topic = self.standardization(query)
-        
+    
         # 生成问题组
-        response_text = eval(self.extension(topic))
-        querygroup = response_text
-        
+        response_text = self.extension(topic)
+        querygroup = eval(response_text)
+ 
+    
         # 编码问题组
         group_embeddings = self.model.encode(querygroup)
         pooled_group_embedding = np.mean(group_embeddings, axis=0)
-        
-        # 检索最相似的上下文
-        k = 20
-        distances, indices = self.index.search(np.array([pooled_group_embedding]), k)
-        
-        retrieved_texts = [self.contexts[i] for i in indices[0]]
-        retrieved_embeddings = [self.context_embeddings[i] for i in indices[0]]
-        
-        # 选择前三个唯一的上下文，可以通过改变下面的数字来改变返回的上下文数量
-        top_contexts = []
+    
+        # 计算 pooled_group_embedding 与所有 quesgroups 编码的余弦相似度
+        similarities = util.cos_sim(pooled_group_embedding, self.datagroup)[0]
+    
+        # 获取相似度最高的 20 个索引
+        top_k = min(20, len(similarities))
+        top_k_values, top_k_indices = torch.topk(similarities, k=top_k)
+        top_k_indices = top_k_indices.numpy()
+    
+        # 获取对应的上下文
+        top_k_contexts = [self.contexts[idx] for idx in top_k_indices]
+    
+        # 对前 20 个上下文进行去重，同时保持索引对应
+        unique_contexts = []
+        unique_indices = []
         seen_contexts = set()
-        for idx in indices[0]:
-            context = self.contexts[idx]
+        for idx, context in zip(top_k_indices, top_k_contexts):
             if context not in seen_contexts:
-                top_contexts.append(context)
                 seen_contexts.add(context)
-            if len(top_contexts) == 3:
-                break
-        
+                unique_contexts.append(context)
+                unique_indices.append(idx)
+    
+         # 使用去重后的索引获取对应的上下文嵌入
+        unique_context_embeddings = self.context_embeddings[unique_indices]
+    
+        # 计算 query_embedding 与去重后的 context_embeddings 的余弦相似度
+        context_similarities = util.cos_sim(query_embedding, unique_context_embeddings)[0]
+    
+        # 获取相似度最高的 3 个索引
+        top_n = min(3, len(context_similarities))
+        top_n_values, top_n_indices_in_unique = torch.topk(context_similarities, k=top_n)
+        # 映射回原始索引
+        top_n_indices = [unique_indices[idx] for idx in top_n_indices_in_unique.numpy()]
+    
+        # 获取最终的上下文
+        top_contexts = [self.contexts[idx] for idx in top_n_indices]
         top_contexts_str = "\nDocument: ".join(top_contexts)
         return top_contexts_str
