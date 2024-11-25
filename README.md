@@ -18,7 +18,7 @@ Question answering (QA) systems play a pivotal role in the field of natural lang
 The HIYO-Encoder project is organized into several key components:
 
 1. **Data Preprocessing (`preprocessing.py`)**: Processes the raw dataset to generate augmented data with 5W1H sub-queries.
-2. **Dual Retrieval (`retrival.py`)**: Manages embedding generation and FAISS indexing for efficient retrieval of relevant contexts.
+2. **Dual Retrieval (`retrival.py`)**: Manages embedding generation and dual retrieval through cosine similarity for efficient retrieval of relevant contexts.
 3. **Evaluation (`evaluate.py`)**: Computes F1 and Exact Match scores to assess the accuracy of generated answers.
 4. **Main Execution (`main.py`)**: Integrates retrieval and evaluation processes to generate and evaluate answers.
 
