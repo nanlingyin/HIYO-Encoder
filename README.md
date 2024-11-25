@@ -191,5 +191,6 @@ For any inquiries or issues, please contact:
 
 - **Email**: 20241008398@stu.shzu.edu.cn
 - **GitHub**: [nanlingyin](https://github.com/nanlingyin)
+- **Personal website**: lynngnan.xyz
 
 ---
