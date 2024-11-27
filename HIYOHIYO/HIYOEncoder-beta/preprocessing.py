@@ -6,13 +6,13 @@ from openai import OpenAI
 
 # 设置 OpenAI API 客户端
 client = OpenAI(
-    api_key="sk-kwW1BsPpbbLfLDFBNmByeYYjIBqnACvv6TyuL8IQN7FRnUID",  # 请将此处替换为您的实际 API 密钥
+    api_key="sk-wF4dimBG8fJ7XrLqdrqMtqi7dVP94W1y2jqHBFF50mgH6bJ6",  # 请将此处替换为您的实际 API 密钥
     base_url="https://api.ephone.chat/v1"
 )
 
 # 此处选择想加载的数据集
-dataset = load_dataset("squad_v2")
-
+dataset = load_dataset('parquet', data_files=r'C:\Users\admin\Desktop\HIYO-Encoder\HIYOHIYO\datasets\datasets\TQA\TQA.parquet')
+#dataset = load_dataset('json', data_files=r'C:\Users\admin\Desktop\HIYO-Encoder\HIYOHIYO\datasets\datasets\webglm-qa\data\test.jsonl')
 # 函数：使用 GPT-4 根据主题生成问题 
 def context_extension(context,topic):
     prompt = f"""
@@ -71,11 +71,19 @@ def standardization(query):#主题提取
     return response.choices[0].message.content
 # 函数：处理每个样本，生成新问题并扩展数据集
 def process_sample(sample):
+    '''context4 = sample['references']
+    context = ""
+    for x in context4:
+        context = context + x
+    #context = sample['context']
+    topic = standardization(sample['question'])
+    generated_questions = context_extension(context,topic)
+'''
     context = sample['context']
     topic = standardization(sample['question'])
     generated_questions = context_extension(context,topic)
-
     new_samples = []
+    
     '''
     # 添加原始问题,该部分仅为测试作用
     new_samples.append({
@@ -84,15 +92,14 @@ def process_sample(sample):
         'answers': sample['answers'],
         'id': sample['id']
     })
-    '''
+    ''' 
     # 添加生成的问题
     new_samples.append({
         'context': context,
         'question': sample['question'],
         'textqueries': generated_questions,#将queries作为依据文本生成的问题组
         'questionqueries': "",#暂时不添加根据问题生成的问题组
-        'answers': sample['answers'],
-        'id': sample['id']
+        'answers': sample['answers']
     })
 
     return new_samples
@@ -100,7 +107,7 @@ def process_sample(sample):
 # 处理前100个样本，可以通过修改此处的数值来处理更多样本
 new_data = []
 for idx, sample in enumerate(tqdm(dataset['train'])):
-    if idx >= 100:
+    if idx >= 500:
         break
     new_data.extend(process_sample(sample))
 
@@ -108,7 +115,7 @@ for idx, sample in enumerate(tqdm(dataset['train'])):
 new_dataset = Dataset.from_pandas(pd.DataFrame(new_data))
 
 # 指定保存路径
-save_path = 'C:/Users/admin/Desktop/new_dataset.parquet'
+save_path = 'C:/Users/admin/Desktop/HIYOHIYO/new_dataset.parquet'
 
 # 保存为 Parquet 文件
 new_dataset.to_parquet(save_path)

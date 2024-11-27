@@ -1,6 +1,6 @@
 import re
 from openai import OpenAI
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers  import SentenceTransformer, util
 import numpy as np
 from datasets import load_dataset
 import random
@@ -8,9 +8,11 @@ import string
 from collections import Counter
 import torch
 import logging
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 class Retriever:
-    def __init__(self, api_key, base_url, model_name='sentence-transformers/all-MiniLM-L6-v2', dataset_path="new_dataset.parquet"):
+    def __init__(self, api_key, base_url, model_name='sentence-transformers/all-MiniLM-L6-v2', dataset_path=r"C:\Users\admin\Desktop\HIYO-Encoder\new_dataset-squad.parquet",split='train'):
         self.client = OpenAI(
             api_key=api_key,
             base_url=base_url
@@ -23,9 +25,11 @@ class Retriever:
     def _process_dataset(self):
         queries, answers, contexts, quesgroups = [], [], [], []
         for i, example in enumerate(self.dataset["train"]):
-            query = example.get("question", "").strip()
-            context = example.get("context", "").strip()
-            answerx = example.get("answers", {})
+            query = example.get("question", "").strip() 
+            context = example.get("context", "").strip() 
+            #answerx = example.get("answers", "").strip()
+            #answers_list = answerx.get("text", [])
+            answerx = example.get("answers", "")
             answers_list = answerx.get("text", [])
             quesgroup = example.get("textqueries", "")
             
@@ -157,5 +161,48 @@ class Retriever:
     
         # 获取最终的上下文
         top_contexts = [self.contexts[idx] for idx in top_n_indices]
+        top_contexts_str = "\nDocument: ".join(top_contexts)
+        return top_contexts_str
+
+    def get_top_contexts_using_query_embedding(self, query):
+        query_embedding = self.model.encode(query)
+        # 计算与所有context_embeddings的余弦相似度
+        similarities = util.cos_sim(query_embedding, self.context_embeddings)[0]
+        # 获取相似度最高的3个索引
+        top_n = min(3, len(similarities))
+        top_n_values, top_n_indices = torch.topk(similarities, k=top_n)
+        top_n_indices = top_n_indices.numpy()
+        # 获取对应的上下文
+        top_contexts = [self.contexts[idx] for idx in top_n_indices]
+        # 将上下文拼接成字符串
+        top_contexts_str = "\nDocument: ".join(top_contexts)
+        return top_contexts_str
+
+    def get_top_contexts_using_group_embedding(self, query):
+        # 提取主题
+        topic = self.standardization(query)
+        # 生成问题组
+        response_text = self.extension(topic)
+        try:
+            querygroup = eval(response_text)
+        except Exception as e:
+            logging.error(f"Failed to parse querygroup: {e}")
+            querygroup = []
+        # 编码问题组
+        if querygroup:
+            group_embeddings = self.model.encode(querygroup)
+            pooled_group_embedding = np.mean(group_embeddings, axis=0)
+        else:
+            # 如果生成的问题组为空，使用零向量
+            pooled_group_embedding = np.zeros(self.model.get_sentence_embedding_dimension())
+        # 计算与所有context_embeddings的余弦相似度
+        similarities = util.cos_sim(pooled_group_embedding, self.context_embeddings)[0]
+        # 获取相似度最高的3个索引
+        top_n = min(3, len(similarities))
+        top_n_values, top_n_indices = torch.topk(similarities, k=top_n)
+        top_n_indices = top_n_indices.numpy()
+        # 获取对应的上下文
+        top_contexts = [self.contexts[idx] for idx in top_n_indices]
+        # 将上下文拼接成字符串
         top_contexts_str = "\nDocument: ".join(top_contexts)
         return top_contexts_str
