@@ -1,106 +1,99 @@
+
 # HIYO-Encoder
-This is the English edition of readme
-## Table of Contents
-- Introduction
-- Architecture
-- Installation
-- Configuration
-- Usage
-  - Data Preprocessing
-  - Retrieval and Evaluation
-- Project Structure
-- Dependencies
-- Example
-- Evaluation Metrics
-- Contact
+This is the repository for the paper HIYO-Encoder: A Dual-Retrieval Model Based on Expanded Question Generation for Addressing Hallucinations in Question Answering
+## Abstract
 
-## Introduction
+Language model performance has show promise using retrieval-augmented generation (RAG) techniques. But conventional RAG methods can rely mostly on direct user searches, so neglecting complex semantic links between the query and retrieval text, so reducing retrieval accuracy and raising hallucination risk. To tackle this, we propose **HIYO-Encoder** , a plug-and-play adaptive encoding method leveraging higher query generating to improve retrieval accuracy. By means of large language models (LLMs), HIYO-Encoder generates expanded searches and develops semantic centers for both user queries and retrieval databases, hence enhancing the alignment between the retrieved content and the original query. This twin-search approach lowers hallucinations and maximizes retrieval performance. We evaluate HIYO-Encoder on question-answering challenges to demonstrate its efficacy in significantly reducing hallucination rates and improving retrieval quality. We also conduct ablation studies.
 
-The **HIYO-Encoder** is a dual-retrieval model designed to increase retrieval accuracy and lower hallucinations. HIYO-Encoder increases retrieval scope by extending searches using a 5W1H framework (who, what, where, when, why, and how), thereby better aligning retrieved information with user intent. In high-precision, low-hallucinity QA settings, experimental data show that HIYO-Encoder outperforms conventional RAG models in F1 and Exact Match measures. HIYO-Encoder is presented in this work as a strong solution for RAG system optimization in challenging environments.
+## Keywords
 
+Dual-Retrieval Model, Question Answering Systems, 5W1H Framework, Hallucination Mitigation, RAG Optimization
 
-## Architecture
+## 1. Introduction
 
-The HIYO-Encoder project is structured into several key components:
+Question answering (QA) systems play a pivotal role in the field of natural language processing, offering solutions across various applications. However, existing systems often grapple with inaccurate information retrieval and the generation of hallucinated content. To address these challenges, we introduce **HIYO-Encoder**, a dual-retrieval model based on expanded question generation. By leveraging the 5W1H framework, HIYO-Encoder broadens the retrieval scope, thereby improving retrieval accuracy and reducing hallucinations.
 
-1. **Data Preprocessing (`preprocessing.py`):** Processes the raw dataset to generate augmented data with generating 5W1H sub-queries.
-2. **Dual Retrieval  (`retrival.py`):** Handles embedding generation and FAISS indexing for efficient retrieval of relevant contexts.
-3. **Evaluation (`evaluate.py`):** Computes F1 and Exact Match scores to evaluate the accuracy of generated answers.
-4. **Main Execution (`main.py`):** Integrates retrieval and evaluation processes to generate and assess answers.
+## 2. Architecture
 
-## Installation
+The HIYO-Encoder project is organized into several key components:
 
-### Prerequisites
+1. **Data Preprocessing (`preprocessing.py`)**: Processes the raw dataset to generate augmented data with 5W1H sub-queries.
+2. **Dual Retrieval (`retrival.py`)**: Manages embedding generation and dual retrieval through cosine similarity for efficient retrieval of relevant contexts.
+3. **Evaluation (`evaluate.py`)**: Computes F1 and Exact Match scores to assess the accuracy of generated answers.
+4. **Main Execution (`main.py`)**: Integrates retrieval and evaluation processes to generate and evaluate answers.
+
+## 3. Installation
+
+### 3.1 Prerequisites
 
 - Python 3.7 or higher
 - Git
 
-### Steps
+### 3.2 Steps
 
 1. **Clone the Repository**
 
-   ```bash
-   git clone https://github.com/your-repo/HIYO-Encoder.git
-   cd HIYO-Encoder
-   ```
+    ```bash
+    git clone https://github.com/your-repo/HIYO-Encoder.git
+    cd HIYO-Encoder
+    ```
 
 2. **Create and Activate a Virtual Environment**
 
-   ```bash
-   python -m venv venv
+    ```bash
+    python -m venv venv
 
-   # Windows
-   venv\Scripts\activate
+    # Windows
+    venv\Scripts\activate
 
-   # macOS/Linux
-   source venv/bin/activate
-   ```
+    # macOS/Linux
+    source venv/bin/activate
+    ```
 
 3. **Install Dependencies**
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## Configuration
+## 4. Configuration
 
-1. **OpenAI API Key**
+### 4.1 OpenAI API Key
 
-   Replace the placeholder API key in `preprocessing.py` and `retrival.py` with your actual OpenAI API key.
+Replace the placeholder API key with your actual OpenAI API key in both `preprocessing.py` and `retrival.py`.
 
-   ```python
-   # Example in retrival.py
-   self.client = OpenAI(
-       api_key="your_actual_api_key",
-       base_url="https://api.ephone.chat/v1"
-   )
-   ```
+```python
+# retrival.py example
+self.client = OpenAI(
+    api_key="your_actual_api_key",
+    base_url="https://api.ephone.chat/v1"
+)
+```
 
-2. **Dataset Path**
+### 4.2 Dataset Path
 
-   Ensure the `dataset_path` parameter points to your dataset file. Modify it in `main.py` and other relevant scripts as needed.
+Ensure the `dataset_path` parameter points to your dataset file. Modify this in `main.py` and other relevant scripts as needed.
 
-   ```python
-   retriever = Retriever(
-       api_key="your_api_key",
-       base_url="https://api.ephone.chat/v1",
-       model_name='sentence-transformers/all-MiniLM-L6-v2',
-       dataset_path="path/to/your_dataset.parquet"
-   )
-   ```
+```python
+retriever = Retriever(
+    api_key="your_api_key",
+    base_url="https://api.openai.chat/",
+    model_name='sentence-transformers/all-MiniLM-L6-v2',
+    dataset_path="path/to/your_dataset.parquet"
+)
+```
 
-## Usage
+## 5. Usage
 
-### Data Preprocessing
+### 5.1 Data Preprocessing
 
-Before performing retrieval and evaluation, preprocess your dataset to generate augmented data.
+Preprocess the dataset to generate augmented data before performing retrieval and evaluation.
 
 ```bash
 python preprocessing.py
 ```
 
-
-### Retrieval and Evaluation
+### 5.2 Retrieval and Evaluation
 
 Execute the main script to perform context retrieval, answer generation, and evaluation.
 
@@ -108,8 +101,7 @@ Execute the main script to perform context retrieval, answer generation, and eva
 python main.py
 ```
 
-
-## Project Structure
+## 6. Project Structure
 
 ```
 HIYO-Encoder/HIYOHIYO/HIYOEncoder-beta/
@@ -123,14 +115,14 @@ HIYO-Encoder/
 └── README.md
 ```
 
-- **main.py:** Integrates retrieval and evaluation processes.
-- **retrival.py:** Contains the `Retriever` class for dual retrieval.
-- **evaluate.py:** Contains the `Evaluator` class for performance evaluation.
-- **preprocessing.py:** Handles data augmentation and preprocessing (5W1H-generation).
-- **requirements.txt:** Lists all Python dependencies.
-- **README.md:** Project documentation.
+- **main.py**: Integrates retrieval and evaluation processes.
+- **retrival.py**: Contains the `Retriever` class for dual retrieval.
+- **evaluate.py**: Contains the `Evaluator` class for performance evaluation.
+- **preprocessing.py**: Handles data augmentation and preprocessing (5W1H generation).
+- **requirements.txt**: Lists all Python dependencies.
+- **README.md**: Project documentation.
 
-## Dependencies
+## 7. Dependencies
 
 The HIYO-Encoder project relies on the following Python libraries:
 
@@ -152,9 +144,9 @@ pandas
 tqdm
 ```
 
-## Example
+## 8. Example
 
-### Sample Output
+### 8.1 Sample Output
 
 ```
 Query: Explain the advantages of AI in medicine.
@@ -167,7 +159,7 @@ Average F1 Score: 0.75
 Average Exact Match Score: 0.2
 ```
 
-### Code Snippet
+### 8.2 Code Snippet
 
 ```python
 # main.py snippet
@@ -175,29 +167,30 @@ print(f"Average F1 Score: {total_f1 / count}")
 print(f"Average Exact Match Score: {total_em / count}")
 ```
 
-## Evaluation Metrics
+## 9. Evaluation Metrics
 
-### F1 Score
+### 9.1 F1 Score
 
-The F1 Score is the harmonic mean of precision and recall, providing a measure of a test's accuracy. It ranges from 0 to 1, where 1 signifies perfect precision and recall.
+The F1 score is the harmonic mean of precision and recall, providing a measure of test accuracy. It ranges from 0 to 1, with 1 indicating perfect precision and recall.
 
 ```python
 f1 = evaluator.f1_score(prediction, ground_truth)
 ```
 
-### Exact Match (EM) Score
+### 9.2 Exact Match (EM) Score
 
-The Exact Match score measures the percentage of predictions that match any one of the ground truth answers exactly.
+The Exact Match score measures the percentage of predictions that exactly match any of the ground truth answers.
 
 ```python
 em = evaluator.exact_match_score(prediction, ground_truth)
 ```
 
-## Contact
+## 10. Contact
 
 For any inquiries or issues, please contact:
 
-- **Email:** 20241008398@stu.shzu.edu.cn
-- **GitHub:** [nanlingyin](https://github.com/nanlingyin)
+- **Email**: 20241008398@stu.shzu.edu.cn
+- **GitHub**: [nanlingyin](https://github.com/nanlingyin)
+- **Personal website**: [https://lynngnan.xyz](https://www.lynngnan.xyz/)
 
 ---
